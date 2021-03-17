@@ -2,20 +2,24 @@ function!	s:null_function()
 	let	l:line			= getline('.')
 	let	l:cword			= expand("<cword>")
 	let	l:substr		= matchlist(l:line, '\v' . l:cword . '\((.*)\)')
+	let l:saved_pos		= getcurpos()
 
 	if s:define_exists()
-		return
-	endif
-	if !empty(l:substr)
-		call s:write_define(l:cword, l:substr[1])
+		let l:saved_pos[1]	-= 1
 	else
-		let l:substr	= matchlist(l:line, '\v(\w+)\((.*)\)')
+		let l:saved_pos[1]	+= 1
 		if !empty(l:substr)
-			call s:write_define(l:substr[1], l:substr[2])
+			call s:write_define(l:cword, l:substr[1])
 		else
-			echo "Error: Cannot detect a regular function name"
+			let l:substr	= matchlist(l:line, '\v(\w+)\((.*)\)')
+			if !empty(l:substr)
+				call s:write_define(l:substr[1], l:substr[2])
+			else
+				echo "Error: Cannot detect a regular function name"
+			endif
 		endif
 	endif
+	call setpos('.', l:saved_pos)
 endfunction
 
 function!	s:define_exists()
@@ -26,7 +30,9 @@ function!	s:define_exists()
 	endif
 
 	let l:match			= matchstr(l:line, '\v^#define \w+\(.*\) .*$')
+
 	if !empty(l:match)
+
 		execute "normal! kddjdd"
 		return 1
 	endif
@@ -34,12 +40,15 @@ function!	s:define_exists()
 endfunction
 
 function!	s:write_define(function_name, params)
+	let l:saved_pos		= getcurpos()
+	let l:saved_pos[1]	+= 1
 	let l:params_string	= s:get_params_string(a:params)
 
 	if empty(l:params_string)
 		echo "Error: Cannot handle that much parameters"
 	else
 		execute "normal! O#define " . a:function_name . "(" . l:params_string . ") 0\<ESC>jo#undef " . a:function_name . "\<ESC>"
+		call setpos('.', l:saved_pos)
 	endif
 endfunction
 
