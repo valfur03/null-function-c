@@ -1,8 +1,11 @@
 function!	s:null_function()
-	let	l:line			= expand(getline('.'))
+	let	l:line			= getline('.')
 	let	l:cword			= expand("<cword>")
 	let	l:substr		= matchlist(l:line, '\v' . l:cword . '\((.*)\)')
 
+	if s:define_exists()
+		return
+	endif
 	if !empty(l:substr)
 		call s:write_define(l:cword, l:substr[1])
 	else
@@ -13,6 +16,21 @@ function!	s:null_function()
 			echo "Error: Cannot detect a regular function name"
 		endif
 	endif
+endfunction
+
+function!	s:define_exists()
+	let l:line			= getline(line('.') - 1)
+
+	if empty(l:line)
+		return 0
+	endif
+
+	let l:match			= matchstr(l:line, '\v^#define \w+\(.*\) .*$')
+	if !empty(l:match)
+		execute "normal! kddjdd"
+		return 1
+	endif
+	return 0
 endfunction
 
 function!	s:write_define(function_name, params)
