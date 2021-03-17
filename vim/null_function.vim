@@ -10,8 +10,7 @@ function!	s:null_function()
 		if !empty(l:substr)
 			call s:write_define(l:substr[1])
 		else
-			echo "Warning: Cannot detect a regular function name\n"
-			call s:write_define(l:cword)
+			echo "Warning: Cannot detect a regular function name"
 		endif
 	endif
 endfunction
